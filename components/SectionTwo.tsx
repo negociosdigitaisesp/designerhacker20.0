@@ -54,6 +54,11 @@ export const SectionTwo = forwardRef<HTMLDivElement, SectionTwoProps>(({ isActiv
   const differentialsRef = useRef<HTMLDivElement>(null);
   const diffCardsRef = useRef<HTMLDivElement>(null);
 
+  // Fog Refs
+  const fog1Ref = useRef<HTMLDivElement>(null);
+  const fog2Ref = useRef<HTMLDivElement>(null);
+  const fog3Ref = useRef<HTMLDivElement>(null);
+
   const [isScrollReady, setIsScrollReady] = useState(false);
 
   // MOMENTUM SCROLL KILLER & SCROLLTRIGGER REFRESH
@@ -111,6 +116,38 @@ export const SectionTwo = forwardRef<HTMLDivElement, SectionTwoProps>(({ isActiv
         { opacity: 1, duration: 0.5 },
         "-=0.3"
       );
+
+      // --- CONTINUOUS FOG ANIMATION (AMBIENT) ---
+      // Moves the fog layers automatically (Time-based instead of Scroll-based)
+      
+      // Layer 1 (Deepest) - Slow drift
+      gsap.to(fog1Ref.current, {
+          x: "5%", 
+          y: "5%", 
+          duration: 20, 
+          repeat: -1, 
+          yoyo: true, 
+          ease: "sine.inOut" 
+      });
+      
+      // Layer 2 (Middle/Clouds) - Distinct drift
+      gsap.to(fog2Ref.current, {
+          x: "-10%", 
+          y: "-5%",
+          duration: 25, 
+          repeat: -1, 
+          yoyo: true, 
+          ease: "sine.inOut" 
+      });
+      
+      // Layer 3 (Texture/Noise) - Constant flow "passing"
+      // Animating background position to simulate moving fog passing by
+      gsap.to(fog3Ref.current, {
+          backgroundPosition: "200% 200%", 
+          duration: 60, 
+          repeat: -1, 
+          ease: "linear" 
+      });
 
       const mm = gsap.matchMedia();
 
@@ -274,9 +311,50 @@ export const SectionTwo = forwardRef<HTMLDivElement, SectionTwoProps>(({ isActiv
             ${isActive && isScrollReady ? 'overflow-y-auto pointer-events-auto' : 'overflow-hidden pointer-events-none'}
         `}
       >
-        {/* Background Overlay - Blue Fog Gradient (OPTIONAL: Keep for local depth or remove to see global more clearly) */}
-        {/* Reduced opacity to let global HypnoticBackground show through */}
-        <div className="fixed top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top,_rgba(0,203,217,0.05)_0%,_rgba(0,203,217,0.01)_60%,_transparent_100%)] mix-blend-screen pointer-events-none z-0" />
+        {/* =========================================================================
+            PARALLAX FOG SYSTEM (CAMADA DE NÉVOA QUE SE MOVE AUTOMATICAMENTE)
+            Fixed positioned relative to the viewport/scroll container.
+            Z-index 0 to stay behind content but above the base background.
+           ========================================================================= */}
+        <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+            
+            {/* Layer 1: Névoa Densa (Fundo) */}
+            <div 
+                ref={fog1Ref} 
+                className="absolute inset-0 w-full h-[120%] -top-[10%] opacity-40 mix-blend-screen"
+                style={{
+                    background: 'radial-gradient(circle at 50% 50%, rgba(0, 203, 217, 0.08) 0%, transparent 60%)',
+                    filter: 'blur(60px)',
+                    transform: 'scale(1.2)'
+                }}
+            />
+
+            {/* Layer 2: Névoa Dispersa (Meio) */}
+            <div 
+                ref={fog2Ref}
+                className="absolute inset-0 w-full h-[150%] -top-[25%] opacity-30 mix-blend-screen"
+            >
+                {/* Nuvem Esquerda */}
+                <div className="absolute top-[20%] -left-[10%] w-[60vw] h-[60vw] bg-[#004d52] rounded-full blur-[100px] opacity-40" />
+                {/* Nuvem Direita */}
+                <div className="absolute top-[60%] -right-[10%] w-[70vw] h-[70vw] bg-[#020617] rounded-full blur-[120px] opacity-60" />
+            </div>
+
+            {/* Layer 3: Névoa Frontal (Mais rápida e texturizada) */}
+            <div 
+                ref={fog3Ref}
+                className="absolute inset-0 w-full h-[200%] -top-[50%] opacity-20 pointer-events-none"
+                style={{
+                    backgroundImage: `url(${ASSETS.NOISE_TEXTURE})`,
+                    backgroundSize: '300px 300px',
+                    mixBlendMode: 'overlay'
+                }}
+            />
+            {/* Gradiente adicional para Layer 3 */}
+            <div 
+                className="absolute inset-0 w-full h-full bg-gradient-to-b from-transparent via-[#00CBD9]/5 to-transparent mix-blend-screen pointer-events-none"
+            />
+        </div>
 
         {/* Marquee Bar */}
         <div ref={marqueeRef} className="absolute top-0 left-0 w-full bg-cyan-neon/10 border-b border-cyan-neon/20 z-20 overflow-hidden py-2 opacity-0">
